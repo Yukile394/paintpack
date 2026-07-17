@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "id": "paintpack",
+  "version": "${version}",
+  "name": "PaintPack",
+  "description": "Elinizde tuttugunuz esyanin texture'unu oyun icinde, gercek zamanli olarak boyamanizi saglayan bir Fabric modu.",
+  "authors": [
+    "YukileX"
+  ],
+  "contact": {},
+  "license": "MIT",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "com.yukilex.paintpack.client.PaintPackClient"
+    ]
+  },
+  "mixins": [],
+  "depends": {
+    "fabricloader": ">=0.18.1",
+    "minecraft": "1.21.x",
+    "java": ">=21",
+    "fabric-api": "*"
+  }
+}
