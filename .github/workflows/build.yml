@@ -30,10 +30,10 @@ jobs:
       - name: Gradle wrapper dosyalarini olustur
         uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: 8.8
+          gradle-version: 9.5.1
 
       - name: Wrapper'i yeniden uret
-        run: gradle wrapper --gradle-version 8.8
+        run: gradle wrapper --gradle-version 9.5.1
 
       - name: gradlew calistirilabilir yap
         run: chmod +x ./gradlew
@@ -45,4 +45,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: paintpack-build
-          path: build
+          path: build/libs/*.jar
