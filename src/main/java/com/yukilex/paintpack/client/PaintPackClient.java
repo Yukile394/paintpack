@@ -16,7 +16,7 @@ import net.minecraft.item.ItemStack;
  */
 public final class PaintPackClient implements ClientModInitializer {
 
-    /** Varsayilan tus: P. Kullanici, Kontroller menusunden bu tusu degistirebilir. */
+    /** Varsayilan tus: B (Boyama). Kullanici, Kontroller menusunden bu tusu degistirebilir. */
     private static KeyBinding openEditorKey;
 
     @Override
@@ -24,7 +24,7 @@ public final class PaintPackClient implements ClientModInitializer {
         openEditorKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "key.paintpack.open_editor",
                 InputUtil.Type.KEYSYM,
-                InputUtil.GLFW_KEY_P,
+                InputUtil.GLFW_KEY_B,
                 "key.category.paintpack"
         ));
 
