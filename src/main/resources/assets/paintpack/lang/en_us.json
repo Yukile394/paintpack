@@ -1,0 +1,18 @@
+{
+  "key.paintpack.open_editor": "Open Item Paint Editor",
+  "key.category.paintpack": "PaintPack",
+
+  "paintpack.editor.title": "Item Paint Editor",
+  "paintpack.editor.no_item": "Hold an item to paint it",
+  "paintpack.editor.save": "Save",
+  "paintpack.editor.undo": "Undo",
+  "paintpack.editor.redo": "Redo",
+  "paintpack.editor.brush": "Brush",
+  "paintpack.editor.eraser": "Eraser",
+  "paintpack.editor.hex": "HEX",
+  "paintpack.editor.recent": "Recent Colors",
+  "paintpack.editor.brush_size": "Brush Size",
+  "paintpack.editor.zoom": "Zoom",
+  "paintpack.editor.grid": "Pixel Grid",
+  "paintpack.editor.saved": "Texture saved!"
+}

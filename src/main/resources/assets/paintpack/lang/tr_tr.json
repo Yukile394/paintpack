@@ -1,0 +1,18 @@
+{
+  "key.paintpack.open_editor": "Esya Boyama Editorunu Ac",
+  "key.category.paintpack": "PaintPack",
+
+  "paintpack.editor.title": "Esya Boyama Editoru",
+  "paintpack.editor.no_item": "Boyamak icin elinizde bir esya tutun",
+  "paintpack.editor.save": "Kaydet",
+  "paintpack.editor.undo": "Geri Al",
+  "paintpack.editor.redo": "Ileri Al",
+  "paintpack.editor.brush": "Firca",
+  "paintpack.editor.eraser": "Silgi",
+  "paintpack.editor.hex": "HEX",
+  "paintpack.editor.recent": "Son Kullanilan Renkler",
+  "paintpack.editor.brush_size": "Firca Boyutu",
+  "paintpack.editor.zoom": "Yakinlastirma",
+  "paintpack.editor.grid": "Piksel Izgarasi",
+  "paintpack.editor.saved": "Texture kaydedildi!"
+}
