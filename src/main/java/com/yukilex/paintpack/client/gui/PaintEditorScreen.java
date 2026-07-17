@@ -18,8 +18,9 @@ import java.util.Deque;
  *
  * Sol taraf: buyutulmus piksel tuvali (canli onizleme burasidir; her firca
  * darbesi aninda gorunur). Sag taraf: renk secici (HSV kutusu + ton
- * seridi), HEX girisi, son kullanilan renkler, firca boyutu / yakinlastirma
- * bilgisi ve arac dugmeleri.
+ * seridi), HEX girisi, firca boyutu / yakinlastirma bilgisi.
+ * Alt taraf: arac cubugu (Firca, Silgi, son kullanilan renkler, Geri Al,
+ * Ileri Al, Kaydet).
  *
  * Fare kontrolleri:
  *  - Sol tik: Firca ile boya
@@ -38,6 +39,7 @@ public final class PaintEditorScreen extends Screen {
     private static final int MIN_ZOOM = 6;
     private static final int MAX_ZOOM = 32;
     private static final int MAX_RECENT_COLORS = 8;
+    private static final int BOTTOM_BAR_HEIGHT = 36;
 
     private final ItemStack stack;
     private PaintCanvas canvas;
@@ -89,33 +91,45 @@ public final class PaintEditorScreen extends Screen {
         this.hexField.setChangedListener(this::onHexChanged);
         this.addDrawableChild(this.hexField);
 
-        y += 120;
+        // Alt arac cubugu: sol tarafta Firca / Silgi, ortada son kullanilan
+        // renkler, sag tarafta Geri Al / Ileri Al / Kaydet.
+        int barY = bottomBarY() + (BOTTOM_BAR_HEIGHT - 20) / 2;
+        int bx = 12;
 
         this.brushButton = ButtonWidget.builder(Text.translatable("paintpack.editor.brush"), b -> selectTool(Tool.BRUSH))
-                .dimensions(panelX, y, 85, 20).build();
+                .dimensions(bx, barY, 70, 20).build();
         this.addDrawableChild(this.brushButton);
+        bx += 74;
 
         this.eraserButton = ButtonWidget.builder(Text.translatable("paintpack.editor.eraser"), b -> selectTool(Tool.ERASER))
-                .dimensions(panelX + 90, y, 85, 20).build();
+                .dimensions(bx, barY, 70, 20).build();
         this.addDrawableChild(this.eraserButton);
 
-        y += 26;
-
-        this.undoButton = ButtonWidget.builder(Text.translatable("paintpack.editor.undo"), b -> doUndo())
-                .dimensions(panelX, y, 85, 20).build();
-        this.addDrawableChild(this.undoButton);
+        int rx = this.width - 12 - 70;
+        this.saveButton = ButtonWidget.builder(Text.translatable("paintpack.editor.save"), b -> doSave())
+                .dimensions(rx, barY, 70, 20).build();
+        this.addDrawableChild(this.saveButton);
+        rx -= 74;
 
         this.redoButton = ButtonWidget.builder(Text.translatable("paintpack.editor.redo"), b -> doRedo())
-                .dimensions(panelX + 90, y, 85, 20).build();
+                .dimensions(rx, barY, 70, 20).build();
         this.addDrawableChild(this.redoButton);
+        rx -= 74;
 
-        y += 26;
-
-        this.saveButton = ButtonWidget.builder(Text.translatable("paintpack.editor.save"), b -> doSave())
-                .dimensions(panelX, y, 175, 20).build();
-        this.addDrawableChild(this.saveButton);
+        this.undoButton = ButtonWidget.builder(Text.translatable("paintpack.editor.undo"), b -> doUndo())
+                .dimensions(rx, barY, 70, 20).build();
+        this.addDrawableChild(this.undoButton);
 
         updateHsvFromColor();
+    }
+
+    private int bottomBarY() {
+        return this.height - BOTTOM_BAR_HEIGHT;
+    }
+
+    /** Son kullanilan renkler seridinin baslangic X'i (Firca/Silgi ile Geri Al arasindaki bosluk). */
+    private int recentColorsBarX() {
+        return 12 + 74 + 74 + 16;
     }
 
     // ----------------------------------------------------------------------------------
@@ -244,13 +258,13 @@ public final class PaintEditorScreen extends Screen {
     // ----------------------------------------------------------------------------------
 
     private int recentColorsY() {
-        return svBoxY() + SV_BOX_SIZE + 14;
+        return bottomBarY() + (BOTTOM_BAR_HEIGHT - 16) / 2;
     }
 
     private int recentSwatchAt(double mx, double my) {
         int rowY = recentColorsY();
         int size = 16;
-        int startX = svBoxX();
+        int startX = recentColorsBarX();
         if (my < rowY || my >= rowY + size) {
             return -1;
         }
@@ -387,15 +401,23 @@ public final class PaintEditorScreen extends Screen {
         drawCanvas(context);
         drawCrosshair(context, mouseX, mouseY);
         drawColorPicker(context);
-        drawRecentColors(context);
         drawInfoPanel(context);
+        drawBottomBar(context);
+        drawRecentColors(context);
 
         super.render(context, mouseX, mouseY, delta);
 
         if (statusTicks > 0) {
-            context.drawTextWithShadow(this.textRenderer, statusMessage, canvasOriginX, this.height - 20, 0x55FF55);
+            context.drawTextWithShadow(this.textRenderer, statusMessage, canvasOriginX, this.height - BOTTOM_BAR_HEIGHT - 14, 0x55FF55);
             statusTicks--;
         }
+    }
+
+    /** Alt arac cubugunun panel arka plani ve ust kenar cizgisi (sik gorunum icin). */
+    private void drawBottomBar(DrawContext context) {
+        int barTop = bottomBarY();
+        context.fill(0, barTop, this.width, this.height, 0xE6181818);
+        context.fill(0, barTop, this.width, barTop + 1, 0x40FFFFFF);
     }
 
     private void drawCanvas(DrawContext context) {
@@ -489,12 +511,14 @@ public final class PaintEditorScreen extends Screen {
     }
 
     private void drawRecentColors(DrawContext context) {
+        int startX = recentColorsBarX();
         int y = recentColorsY();
-        context.drawTextWithShadow(this.textRenderer, Text.translatable("paintpack.editor.recent"), svBoxX(), y - 12, 0xAAAAAA);
+        context.drawTextWithShadow(this.textRenderer, Text.translatable("paintpack.editor.recent"), startX, bottomBarY() - 12, 0xAAAAAA);
         int size = 16;
         int index = 0;
         for (int color : recentColors) {
-            int sx = svBoxX() + index * (size + 2);
+            int sx = startX + index * (size + 2);
+            context.fill(sx - 1, y - 1, sx + size + 1, y + size + 1, 0xFF3A3A3A);
             context.fill(sx, y, sx + size, y + size, 0xFF000000 | (color & 0xFFFFFF));
             index++;
         }
