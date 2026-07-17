@@ -250,7 +250,6 @@ public final class PaintedTextureManager {
                 .texture(u, v)
                 .overlay(overlay)
                 .light(light)
-                .normal(0, 0, nz)
-                .next();
+                .normal(0, 0, nz);
     }
 }
