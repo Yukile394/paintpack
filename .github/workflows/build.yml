@@ -30,10 +30,10 @@ jobs:
       - name: Gradle wrapper dosyalarini olustur
         uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: 9.5.1
+          gradle-version: 8.8
 
       - name: Wrapper'i yeniden uret
-        run: gradle wrapper --gradle-version 9.5.1
+        run: gradle wrapper --gradle-version 8.8
 
       - name: gradlew calistirilabilir yap
         run: chmod +x ./gradlew
