@@ -1,0 +1,48 @@
+name: Build
+
+on:
+  push:
+    branches: [ "**" ]
+  pull_request:
+    branches: [ "**" ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Kaynak kodu al
+        uses: actions/checkout@v4
+
+      - name: JDK 21 kur
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      # gradle-wrapper.jar bir binary (jar) dosyasidir ve repoya elle
+      # eklenmemistir. Bu adim, gerekli Gradle surumunu kurup
+      # gradle/wrapper/gradle-wrapper.jar dosyasini otomatik olarak
+      # (yeniden) uretir. Boylece "./gradlew build" her zaman calisir.
+      - name: Gradle wrapper dosyalarini olustur
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 8.8
+
+      - name: Wrapper'i yeniden uret
+        run: gradle wrapper --gradle-version 8.8
+
+      - name: gradlew calistirilabilir yap
+        run: chmod +x ./gradlew
+
+      - name: Modu derle
+        run: ./gradlew build --stacktrace --no-daemon
+
+      - name: Derleme ciktilarini yukle
+        uses: actions/upload-artifact@v4
+        with:
+          name: paintpack-build
+          path: build
