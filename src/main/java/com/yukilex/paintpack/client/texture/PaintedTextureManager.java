@@ -61,6 +61,11 @@ public final class PaintedTextureManager {
         return INSTANCE;
     }
 
+    /** Bu esya turu daha once boyanmis mi (DynamicBuiltinModel bunu her render'da kontrol eder). */
+    public boolean isPainted(Item item) {
+        return paintedItems.contains(item);
+    }
+
     /** Mod baslatilirken cagrilir: daha once kaydedilmis tum texture'lari yukler ve uygular. */
     public void loadSavedTextures() {
         try {
