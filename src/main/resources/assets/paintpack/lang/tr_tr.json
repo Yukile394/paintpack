@@ -14,5 +14,7 @@
   "paintpack.editor.brush_size": "Firca Boyutu",
   "paintpack.editor.zoom": "Yakinlastirma",
   "paintpack.editor.grid": "Piksel Izgarasi",
-  "paintpack.editor.saved": "Texture kaydedildi!"
+  "paintpack.editor.saved": "Texture kaydedildi!",
+  "paintpack.editor.reset": "Orijinaline Dondur",
+  "paintpack.editor.reset_done": "Orijinal haline dondu!"
 }
