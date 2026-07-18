@@ -1,10 +1,12 @@
 package com.yukilex.paintpack.client;
 
 import com.yukilex.paintpack.client.gui.PaintEditorScreen;
+import com.yukilex.paintpack.client.texture.PaintPackModelLoadingPlugin;
 import com.yukilex.paintpack.client.texture.PaintedTextureManager;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
+import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
@@ -27,6 +29,10 @@ public final class PaintPackClient implements ClientModInitializer {
                 InputUtil.GLFW_KEY_B,
                 "key.category.paintpack"
         ));
+
+        // Boyanmis esyalarin ozel render fonksiyonumuzla cizilebilmesi icin
+        // tum esya modellerini saran plugin'i kaydet.
+        ModelLoadingPlugin.register(new PaintPackModelLoadingPlugin());
 
         // Daha once boyanmis texture'lari oyun acilir acilmaz yukle ve uygula.
         PaintedTextureManager.getInstance().loadSavedTextures();
