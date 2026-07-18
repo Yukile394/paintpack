@@ -20,7 +20,7 @@ public final class PaintPackModelLoadingPlugin implements ModelLoadingPlugin {
                 return model;
             }
 
-            Item item = Registries.ITEM.get(id.getId());
+            Item item = Registries.ITEM.get(id.id());
             if (item == null || item == Items.AIR) {
                 return model;
             }
