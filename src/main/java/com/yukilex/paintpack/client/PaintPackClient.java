@@ -4,6 +4,7 @@ import com.yukilex.paintpack.client.gui.PaintEditorScreen;
 import com.yukilex.paintpack.client.texture.PaintPackModelLoadingPlugin;
 import com.yukilex.paintpack.client.texture.PaintedTextureManager;
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
@@ -34,8 +35,12 @@ public final class PaintPackClient implements ClientModInitializer {
         // tum esya modellerini saran plugin'i kaydet.
         ModelLoadingPlugin.register(new PaintPackModelLoadingPlugin());
 
-        // Daha once boyanmis texture'lari oyun acilir acilmaz yukle ve uygula.
-        PaintedTextureManager.getInstance().loadSavedTextures();
+        // Daha once boyanmis texture'lari yukle ve uygula. Bu islem
+        // MinecraftClient tamamen hazir olana kadar ERTELENIR; aksi halde
+        // (onInitializeClient sirasinda) TextureManager henuz null olabilir
+        // ve oyun "Initializing game" asamasinda cokebilir.
+        ClientLifecycleEvents.CLIENT_STARTED.register(client ->
+                PaintedTextureManager.getInstance().loadSavedTextures());
 
         ClientTickEvents.END_CLIENT_TICK.register(this::onClientTick);
     }
