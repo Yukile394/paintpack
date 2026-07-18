@@ -3,7 +3,7 @@ package com.yukilex.paintpack.client.texture;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.render.model.BakedQuad;
-import net.minecraft.client.render.model.ModelOverrideList;
+import net.minecraft.client.render.model.json.ModelOverrideList;
 import net.minecraft.client.render.model.json.ModelTransformation;
 import net.minecraft.client.texture.Sprite;
 import net.minecraft.item.Item;
@@ -12,6 +12,20 @@ import net.minecraft.util.math.random.Random;
 
 import java.util.List;
 
+/**
+ * PaintPack tarafindan boyanmis bir esyanin, kendi ozel (builtin) render
+ * kodumuzla cizilebilmesi icin orijinal modelini saran ince bir katman.
+ *
+ * Tek farki: isBuiltin() metodu, o an bu esya turu boyanmissa true doner.
+ * Bu sayede oyun motoru (Fabric API'nin BuiltinModelItemRenderer yamasi
+ * uzerinden) PaintedTextureManager.applyTexture() icinde kaydedilen ozel
+ * cizim fonksiyonumuzu cagirir. Esya boyanmamissa, orijinal model
+ * degismeden normal sekilde cizilmeye devam eder (delegate'e yonlendirilir).
+ *
+ * Boylece boyama, "resource pack degistirmis gibi" bir gorunum saglar:
+ * elde, yerde, envanterde ve item frame'de esya artik boyanmis haliyle
+ * gorunur; ama hicbir orijinal dosya degistirilmez.
+ */
 final class DynamicBuiltinModel implements BakedModel {
 
     private final BakedModel delegate;
