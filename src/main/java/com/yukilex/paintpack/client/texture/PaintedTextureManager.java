@@ -66,6 +66,18 @@ public final class PaintedTextureManager {
         return paintedItems.contains(item);
     }
 
+    /** Bu esya turunu boyamadan once nasilsa oyle geri getirir: kayitli PNG silinir, ozel render kapanir. */
+    public void resetToOriginal(Item item) {
+        paintedItems.remove(item);
+        appliedTextures.remove(item);
+        try {
+            Path saved = pathFor(item);
+            Files.deleteIfExists(saved);
+        } catch (IOException e) {
+            System.err.println("[PaintPack] Kayitli texture silinemedi: " + e.getMessage());
+        }
+    }
+
     /** Mod baslatilirken cagrilir: daha once kaydedilmis tum texture'lari yukler ve uygular. */
     public void loadSavedTextures() {
         try {
@@ -209,7 +221,7 @@ public final class PaintedTextureManager {
         }
     }
 
-    /** Boyanmis bir esyayi duz (flat) bir kare olarak, kendi texture'imizle cizer. */
+    /** Boyanmis bir esyayi cizer: bloklar icin kup, digerleri icin kalinlikli (derinlikli) kart. */
     private void renderPaintedItem(Item item, ModelTransformationMode mode, MatrixStack matrices,
                                     VertexConsumerProvider vertexConsumers, int light, int overlay) {
         Identifier textureId = appliedTextures.get(item);
@@ -223,38 +235,81 @@ public final class PaintedTextureManager {
         VertexConsumer buffer = vertexConsumers.getBuffer(RenderLayer.getEntityCutout(textureId));
         Matrix4f posMatrix = matrices.peek().getPositionMatrix();
 
-        float half = 0.5f;
-        // On yuz
-        drawQuad(buffer, posMatrix, -half, -half, half, half, 0.0f, light, overlay, false);
-        // Arka yuz (iki tarafli gorunum icin)
-        drawQuad(buffer, posMatrix, -half, -half, half, half, 0.0f, light, overlay, true);
+        if (item instanceof net.minecraft.item.BlockItem) {
+            drawCube(buffer, posMatrix, light, overlay);
+        } else {
+            drawFlatCard(buffer, posMatrix, light, overlay);
+        }
 
         matrices.pop();
     }
 
-    private void drawQuad(VertexConsumer buffer, Matrix4f matrix, float x1, float y1, float x2, float y2,
-                           float z, int light, int overlay, boolean flipped) {
-        float nz = flipped ? -1.0f : 1.0f;
-        if (!flipped) {
-            vertex(buffer, matrix, x1, y2, z, 0, 1, light, overlay, nz);
-            vertex(buffer, matrix, x2, y2, z, 1, 1, light, overlay, nz);
-            vertex(buffer, matrix, x2, y1, z, 1, 0, light, overlay, nz);
-            vertex(buffer, matrix, x1, y1, z, 0, 0, light, overlay, nz);
+    private static final float HALF = 0.5f;
+    /** Kart kalinligi (yamulma/gecirgen kenar sorununu onlemek icin). */
+    private static final float CARD_DEPTH = 1f / 16f;
+
+    /** Araclar, silahlar vb. duz esyalar icin: on, arka ve 4 ince kenar (gercek kalinlik verir). */
+    private void drawFlatCard(VertexConsumer buffer, Matrix4f m, int light, int overlay) {
+        float d = CARD_DEPTH / 2f;
+
+        // On yuz (+Z)
+        face(buffer, m, -HALF, -HALF, d, HALF, -HALF, d, HALF, HALF, d, -HALF, HALF, d, 0, 0, 1, 255, light, overlay, true);
+        // Arka yuz (-Z)
+        face(buffer, m, HALF, -HALF, -d, -HALF, -HALF, -d, -HALF, HALF, -d, HALF, HALF, -d, 0, 0, -1, 255, light, overlay, true);
+        // Alt kenar
+        face(buffer, m, -HALF, -HALF, -d, HALF, -HALF, -d, HALF, -HALF, d, -HALF, -HALF, d, 0, -1, 0, 170, light, overlay, false);
+        // Ust kenar
+        face(buffer, m, -HALF, HALF, d, HALF, HALF, d, HALF, HALF, -d, -HALF, HALF, -d, 0, 1, 0, 170, light, overlay, false);
+        // Sol kenar
+        face(buffer, m, -HALF, -HALF, -d, -HALF, -HALF, d, -HALF, HALF, d, -HALF, HALF, -d, -1, 0, 0, 170, light, overlay, false);
+        // Sag kenar
+        face(buffer, m, HALF, -HALF, d, HALF, -HALF, -d, HALF, HALF, -d, HALF, HALF, d, 1, 0, 0, 170, light, overlay, false);
+    }
+
+    /** Bloklar icin tam bir kup: her yuzeyde ayni (boyanmis) texture, vanilla'ya benzer golgelendirme. */
+    private void drawCube(VertexConsumer buffer, Matrix4f m, int light, int overlay) {
+        float h = HALF;
+        // Ust (+Y) - en parlak
+        face(buffer, m, -h, h, -h, -h, h, h, h, h, h, h, h, -h, 0, 1, 0, 255, light, overlay, true);
+        // Alt (-Y) - en koyu
+        face(buffer, m, -h, -h, h, -h, -h, -h, h, -h, -h, h, -h, h, 0, -1, 0, 140, light, overlay, true);
+        // On (+Z)
+        face(buffer, m, -h, -h, h, h, -h, h, h, h, h, -h, h, h, 0, 0, 1, 220, light, overlay, true);
+        // Arka (-Z)
+        face(buffer, m, h, -h, -h, -h, -h, -h, -h, h, -h, h, h, -h, 0, 0, -1, 220, light, overlay, true);
+        // Sol (-X)
+        face(buffer, m, -h, -h, -h, -h, -h, h, -h, h, h, -h, h, -h, -1, 0, 0, 190, light, overlay, true);
+        // Sag (+X)
+        face(buffer, m, h, -h, h, h, -h, -h, h, h, -h, h, h, h, 1, 0, 0, 190, light, overlay, true);
+    }
+
+    /** Dort koseli bir yuzey (quad) cizer; verilen kose sirasi UV (0,0)-(1,0)-(1,1)-(0,1) ile eslesir. */
+    private void face(VertexConsumer buffer, Matrix4f m,
+                       float x1, float y1, float z1, float x2, float y2, float z2,
+                       float x3, float y3, float z3, float x4, float y4, float z4,
+                       float nx, float ny, float nz, int brightness, int light, int overlay, boolean useFullTexture) {
+        if (useFullTexture) {
+            vertex(buffer, m, x1, y1, z1, 0, 1, brightness, light, overlay, nx, ny, nz);
+            vertex(buffer, m, x2, y2, z2, 1, 1, brightness, light, overlay, nx, ny, nz);
+            vertex(buffer, m, x3, y3, z3, 1, 0, brightness, light, overlay, nx, ny, nz);
+            vertex(buffer, m, x4, y4, z4, 0, 0, brightness, light, overlay, nx, ny, nz);
         } else {
-            vertex(buffer, matrix, x1, y1, z, 0, 0, light, overlay, nz);
-            vertex(buffer, matrix, x2, y1, z, 1, 0, light, overlay, nz);
-            vertex(buffer, matrix, x2, y2, z, 1, 1, light, overlay, nz);
-            vertex(buffer, matrix, x1, y2, z, 0, 1, light, overlay, nz);
+            // Ince kenar seritleri icin tekstur kenar pikselinden alinir (ince cizgi gibi gorunmesin diye).
+            vertex(buffer, m, x1, y1, z1, 0, 0, brightness, light, overlay, nx, ny, nz);
+            vertex(buffer, m, x2, y2, z2, 1, 0, brightness, light, overlay, nx, ny, nz);
+            vertex(buffer, m, x3, y3, z3, 1, 0.02f, brightness, light, overlay, nx, ny, nz);
+            vertex(buffer, m, x4, y4, z4, 0, 0.02f, brightness, light, overlay, nx, ny, nz);
         }
     }
 
     private void vertex(VertexConsumer buffer, Matrix4f matrix, float x, float y, float z,
-                         float u, float v, int light, int overlay, float nz) {
+                         float u, float v, int brightness, int light, int overlay,
+                         float nx, float ny, float nz) {
         buffer.vertex(matrix, x, y, z)
-                .color(255, 255, 255, 255)
+                .color(brightness, brightness, brightness, 255)
                 .texture(u, v)
                 .overlay(overlay)
                 .light(light)
-                .normal(0, 0, nz);
+                .normal(nx, ny, nz);
     }
 }
