@@ -14,5 +14,7 @@
   "paintpack.editor.brush_size": "Brush Size",
   "paintpack.editor.zoom": "Zoom",
   "paintpack.editor.grid": "Pixel Grid",
-  "paintpack.editor.saved": "Texture saved!"
+  "paintpack.editor.saved": "Texture saved!",
+  "paintpack.editor.reset": "Reset to Original",
+  "paintpack.editor.reset_done": "Reset to original!"
 }
